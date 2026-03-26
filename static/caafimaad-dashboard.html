@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="so" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>e-Balami Dashboard - Waaxda Caafimaadka</title>
+    <!-- ================== FAVICON LINKS (NOOCA DHAMMAYSTIRAN) ================== -->
+<link rel="apple-touch-icon" sizes="180x180" href="Assets/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="32x32" href="Assets/favicon-32x32.png">
+<link rel="icon" type="image/png" sizes="16x16" href="Assets/favicon-16x16.png">
+<link rel="manifest" href="Assets/site.webmanifest">
+<!-- ======================================================================= -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script>tailwind.config = { darkMode: 'class', theme: { extend: { colors: { primary: '#FFC107' } } } }</script>
+</head>
+<body class="bg-gray-900 text-white p-4 sm:p-8">
+
+<!-- ================== NAVIGATOR-KA DASHBOARD-KA OO DHAMMAYSTIRAN ================== -->
+<div class="bg-gray-800 p-2 mb-6">
+    <div class="container mx-auto flex items-center justify-center gap-4">
+        <!-- Badhanka Caafimaadka -->
+        <a href="/dashboard/caafimaad" id="nav-caafimaad" 
+           class="py-2 px-6 rounded-lg font-bold text-sm transition-all duration-300">
+           Waaxda Caafimaadka
+        </a>
+
+        <!-- Badhanka Farsamada -->
+        <a href="/dashboard/farsamo" id="nav-farsamo" 
+           class="py-2 px-6 rounded-lg font-bold text-sm transition-all duration-300">
+           Waaxda Farsamada
+        </a>
+    </div>
+</div>
+
+<div class="max-w-7xl mx-auto">
+    <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+        <h1 class="text-3xl font-bold">Dalabyada Cusub (Caafimaad)</h1>
+        <button onclick="logoutUser()" class="bg-red-600 text-white font-bold py-2 px-4 rounded hover:bg-red-500 flex items-center gap-2"><span class="material-symbols-outlined">logout</span> Ka Bax</button>
+    </div>
+
+    <div class="mb-4 space-y-4 sm:space-y-0 sm:flex sm:justify-between sm:items-center">
+        <!-- BADHAMADA OO LA SAXAY -->
+        <div class="flex bg-gray-800 p-1 rounded-lg gap-1">
+            <button id="tab-dhamaystiran" onclick="loadOrders('dalabyadaDhamaystiran')" class="flex-1 py-2 px-4 text-sm font-bold rounded-md">Dhammaystiran</button>
+            <button id="tab-qabyo" onclick="loadOrders('dalabyadaAanDhamaystirnayn')" class="flex-1 py-2 px-4 text-sm font-bold rounded-md">Qabyo ah</button>
+        </div>
+        <div class="relative w-full sm:max-w-xs">
+            <input id="search-input" onkeyup="filterTable()" type="text" placeholder="Raadi dalab..." class="w-full bg-gray-700 text-white rounded p-2 pl-10 focus:outline-none focus:ring-2 focus:ring-primary">
+            <span class="material-symbols-outlined absolute left-3 top-2.5 text-gray-400">search</span>
+        </div>
+    </div>
+     <p id="order-count" class="text-sm text-slate-400 my-2"></p>
+    <div class="bg-gray-800 rounded-lg shadow-lg overflow-x-auto max-h-[60vh] overflow-y-auto">
+        <table class="w-full min-w-[1400px]"> <!-- Waan sii weyneeyay si aan boos ugu helo -->
+            <thead class="bg-gray-700">
+                <tr>
+                     <th class="p-3 text-center text-xs font-bold uppercase">#</th>
+                    <th class="p-3 text-left text-xs font-bold uppercase">Magaca</th>
+                    <th class="p-3 text-center text-xs font-bold uppercase">Da'da</th>
+                    <th class="p-3 text-left text-xs font-bold uppercase">Email</th>
+                    <th class="p-3 text-left text-xs font-bold uppercase">Taleefan</th>
+                    <th class="p-3 text-left text-xs font-bold uppercase">Magaalada Joogo</th>
+                    <th class="p-3 text-left text-xs font-bold uppercase">Goobta Safarka</th>
+                    <th class="p-3 text-left text-xs font-bold uppercase">Adeegyada</th>
+                    <th class="p-3 text-left text-xs font-bold uppercase">Waqtiga</th>
+                    <th class="p-3 text-center text-xs font-bold uppercase text-green-400">Jawaab</th>
+                    <th class="p-3 text-center text-xs font-bold uppercase">Tallaabo</th>
+                </tr>
+            </thead>
+            <tbody id="orders-table"></tbody>
+        </table>
+    </div>
+    <div class="mt-4 text-right">
+        <button id="deleteAllBtn" onclick="deleteAllOrders()" class="bg-red-800/50 text-red-300 text-xs font-bold py-2 px-3 rounded hover:bg-red-800/80">Tirtir Dhammaan</button>
+    </div>
+</div>
+
+<!-- ================== MASKAXDA UGU DAMBEYSA OO DHAMMAYSTIRAN OO LA SAXAY ================== -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+<script>
+    // ============= LIISKA ADMIN-KA (MEESHA LAGA BEDDELO) =============
+ const ADMIN_EMAILS = ["omermohamed1872@gmail.com", "ebalamiservices@gmail.com"]; // Ku dar email kasta oo aad rabto
+ let isDashboardAdmin = false;
+ // ================================================================
+    const firebaseConfig = {
+        apiKey: "AIzaSyAq0ZMHARQzJlQDQVdcBrJLSOwrvI1tCLI",
+        authDomain: "ebalami-website.firebaseapp.com",
+        projectId: "ebalami-website",
+        storageBucket: "ebalami-website.firebasestorage.app",
+        messagingSenderId: "612434597781",
+        appId: "1:612434597781:web:cd46819a426fc8ee60c89c"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentCollection = 'dalabyadaDhamaystiran';
+    let allOrdersData = []; 
+
+    function logoutUser() { auth.signOut().then(() => { window.location.href = 'login.html'; }); }
+    
+    auth.onAuthStateChanged(user => {
+    if (!user) {
+        window.location.href = 'login.html'; // Ku celi Login hadduusan jirin
+    } else {
+        // Hubi haddii user-kan uu liiska Admin-ka ku jiro
+        isDashboardAdmin = ADMIN_EMAILS.includes(user.email);
+
+        // Halkan waxaan ku qarinaynaa badhanka weyn ee "Tirtir Dhammaan"
+        const deleteAllButton = document.getElementById('deleteAllBtn');
+        if (deleteAllButton) {
+            // Haddii uu Admin yahay tus, haddii kale qari (none)
+            deleteAllButton.style.display = isDashboardAdmin ? 'flex' : 'none';
+        }
+        
+        loadOrders(currentCollection);
+    }
+});
+    function loadOrders(collectionName) {
+        currentCollection = collectionName;
+        
+        document.getElementById('tab-dhamaystiran').classList.toggle('bg-primary', collectionName === 'dalabyadaDhamaystiran');
+        document.getElementById('tab-dhamaystiran').classList.toggle('text-gray-900', collectionName === 'dalabyadaDhamaystiran');
+        document.getElementById('tab-dhamaystiran').classList.toggle('text-gray-400', collectionName !== 'dalabyadaDhamaystiran');
+        
+        document.getElementById('tab-qabyo').classList.toggle('bg-primary', collectionName === 'dalabyadaAanDhamaystirnayn');
+        document.getElementById('tab-qabyo').classList.toggle('text-gray-900', collectionName === 'dalabyadaAanDhamaystirnayn');
+        document.getElementById('tab-qabyo').classList.toggle('text-gray-400', collectionName !== 'dalabyadaAanDhamaystirnayn');
+
+        const tableBody = document.getElementById('orders-table');
+        const timeField = 'timestamp';
+        
+        db.collection(collectionName).orderBy(timeField, "desc").onSnapshot(snapshot => {
+            tableBody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-gray-500">Waan soo raadinayaa dalabyada...</td></tr>`;
+            if (snapshot.empty) {
+                tableBody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-gray-500">Wax dalab ah kama jiro qaybtan.</td></tr>`;
+                allOrdersData = []; 
+                document.getElementById('order-count').textContent = "Wax dalab ah lama helin.";
+                return;
+            }
+            allOrdersData = snapshot.docs;
+            renderTable(allOrdersData);
+        }, error => {
+            console.error("Firebase Error:", error);
+            tableBody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-red-400">Cillad ayaa ka dhacday isku xirka.</td></tr>`;
+        });
+    }
+    
+ 
+function renderTable(docs) {
+    // Tirada Guud
+    const totalCount = allOrdersData.length;
+    document.getElementById('order-count').textContent = `Tirada Guud ee Dalabyada: ${totalCount}`;
+
+    const tableBody = document.getElementById('orders-table');
+    
+    tableBody.innerHTML = docs.map((doc, index) => {
+        const data = doc.data();
+        
+        // --- LOGIC-GA HIGHLIGHT-KA ---
+        const isResponded = data.responded === true;
+
+        // Midabka Safka (Row Style)
+        const rowClass = isResponded 
+            ? 'bg-green-900/30 border-l-4 border-green-500' // Cagaar haddii la saxay
+            : 'border-b border-gray-700 hover:bg-gray-700/50'; // Caadi
+
+        // Icon-ka (Sax ama Goobo)
+        const iconBtn = isResponded 
+            ? `<span class="material-symbols-outlined text-green-400 text-2xl">check_circle</span>` 
+            : `<span class="material-symbols-outlined text-gray-500 text-2xl hover:text-white">radio_button_unchecked</span>`;
+        // -----------------------------
+
+        // Formatting Data
+        
+        const services = Array.isArray(data.services) ? data.services.join(', ') : 'Lama hayo';
+        const date = data.timestamp ? data.timestamp.toDate().toLocaleString('so-SO', { day:'2-digit', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }) : '-';
+        
+        // --- QAYBTA CUSUB: SAMEE LINK-GA WHATSAPP-KA ---
+        // Waxaan lambarka ka saaraynaa meelaha banaan, +, iyo -, si uu u noqdo lambar nadiif ah
+        const rawPhone = data.phone || '';
+        const cleanPhone = rawPhone.replace(/[^0-9]/g, ''); 
+        const waLink = cleanPhone ? `https://wa.me/${cleanPhone}` : '#';
+        // -----------------------------------------------
+
+        return `<tr class="${rowClass} transition-all duration-300">
+            <td class="p-3 text-sm text-center text-slate-400">${index + 1}</td>
+            <td class="p-3 text-sm font-medium">${data.name || ''}</td>
+            <td class="p-3 text-sm text-center">${data.age || '-'}</td>
+            <td class="p-3 text-sm text-cyan-400">${data.email || ''}</td>
+            
+            <!-- TIIRKA TALEEFANKA OO CUSUB (WhatsApp leh) -->
+            <td class="p-3 text-sm">
+                 <a href="${waLink}" target="_blank" class="flex items-center justify-start gap-2 text-green-400 hover:text-green-300 hover:underline font-medium" title="Kula hadal WhatsApp">
+                    <span class="material-symbols-outlined text-[18px]">chat</span>
+                    ${data.phone || ''}
+                </a>
+            </td>
+
+            <td class="p-3 text-sm">${data.city || ''}</td>
+            <td class="p-3 text-sm text-yellow-400 font-bold">${data.destination || 'Lama dooran'}</td>
+            <td class="p-3 text-sm">${services}</td>
+            <td class="p-3 text-xs text-gray-400 whitespace-nowrap">${date}</td>
+            
+            <!-- BADHANKA CUSUB EE TICK-GA -->
+            <td class="p-3 text-center">
+                <button onclick="window.toggleStatus('${currentCollection}', '${doc.id}', ${isResponded})" title="Calaamadee in la jawaabay" class="transition-transform active:scale-95">
+                    ${iconBtn}
+                </button>
+            </td>
+
+            <td class="p-3 text-center">
+    ${isDashboardAdmin 
+      ? `<button onclick="deleteOrder('${currentCollection}', '${doc.id}')" class="text-red-400 hover:text-red-200"><span class="material-symbols-outlined">delete</span></button>` 
+      : '' // Haddii uusan Admin ahayn, waxba ha soo saarin (meel banaan)
+    }
+</td>
+        </tr>`;
+        
+    }).join('');
+}
+    function filterTable() {
+        const query = document.getElementById('search-input').value.toLowerCase();
+        const filteredDocs = allOrdersData.filter(doc => JSON.stringify(doc.data()).toLowerCase().includes(query));
+        renderTable(filteredDocs);
+    }
+
+    function deleteOrder(collection, docId) {
+        if (confirm('Ma hubtaa inaad tirtirto dalabkan? Lama soo celin karo.')) {
+            db.collection(collection).doc(docId).delete();
+        }
+    }
+    
+    function deleteAllOrders() {
+        if (confirm(`MA HUBTAA? Tallaabadan waxay tirtiri doontaa DHAMMAAN dalabyada ku jira qaybta "${currentCollection}". Shaqadan LAMA SOO CELIN KARO.`)) {
+            db.collection(currentCollection).get().then(snapshot => {
+                const batch = db.batch();
+                snapshot.forEach(doc => { batch.delete(doc.ref); });
+                return batch.commit();
+            });
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+    const caafimaadBtn = document.getElementById('nav-caafimaad');
+    const farsamoBtn = document.getElementById('nav-farsamo');
+
+    // Style-ka Badhanka Firfircoon (Huruud Buuxa)
+    const activeStyle = "bg-primary text-gray-900 shadow-md transform scale-105";
+    
+    // Style-ka Badhanka Dansan (Qoraal kaliya)
+    const inactiveStyle = "text-gray-400 hover:text-white hover:bg-gray-700/50";
+
+    // Hubi URL-ka
+    if (window.location.pathname.includes('/farsamo')) {
+        // Hadaad Farsamo joogto:
+        farsamoBtn.classList.add(...activeStyle.split(" "));
+        caafimaadBtn.classList.add(...inactiveStyle.split(" "));
+    } else {
+        // Hadaad Caafimaad joogto (Default):
+        caafimaadBtn.classList.add(...activeStyle.split(" "));
+        farsamoBtn.classList.add(...inactiveStyle.split(" "));
+    }
+
+    // Function-kan wuxuu la shaqaynayaa labada Dashboard-ba
+window.toggleStatus = function(collection, docId, currentStatus) {
+    db.collection(collection).doc(docId).update({
+        responded: !currentStatus
+    }).catch(error => {
+        console.error("Error:", error);
+        alert("Cillad: " + error.message);
+    });
+};
+
+// Function-kan wuxuu lambarka ka saarayaa Space-ka iyo calaamadaha, wuxuuna ku darayaa wa.me
+function getWhatsAppLink(phoneNumber) {
+    if (!phoneNumber) return '#';
+    // Ka saar wixii aan lambar ahayn (Space, +, -)
+    const cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
+    return `https://wa.me/${cleanNumber}`;
+}
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="so" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <title>e-Balami - Maamulka Kharashaadka</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet"/>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: { extend: { colors: { primary: '#FFC107', background: '#121212' } } }
+        }
+    </script>
+    <style> .page-hidden { display: none; } </style>
+</head>
+<body class="bg-background text-slate-200 font-['Manrope',_sans-serif] min-h-screen flex items-center justify-center p-4">
+
+<!-- KONTENARKA UGU WEYN -->
+<div class="w-full max-w-4xl mx-auto">
+
+    <!-- BOGGA LOGIN-KA -->
+    <div id="page-login">
+        <div class="bg-gray-800 p-8 rounded-lg max-w-md mx-auto">
+            <h2 class="text-3xl font-bold text-white text-center mb-6">Maamulka Maaliyada</h2>
+            <input id="email" type="email" placeholder="Email" class="w-full bg-gray-700 text-white rounded p-3 mb-4">
+            <input id="password" type="password" placeholder="Password" class="w-full bg-gray-700 text-white rounded p-3 mb-4">
+            <button onclick="loginUser()" class="w-full bg-primary text-gray-900 font-bold p-3 rounded">Soo Gal</button>
+            <p id="login-error" class="text-red-400 text-center mt-4 hidden"></p>
+        </div>
+    </div>
+
+    <!-- BOGGA DASHBOARD-KA (QARSOON MARKII HORE) -->
+    <div id="page-dashboard" class="page-hidden">
+        <div class="flex justify-between items-center mb-6">
+            <h1 class="text-3xl font-bold">e-Balami Financial Dashboard</h1>
+            <button onclick="logoutUser()" class="bg-red-600 text-sm font-bold py-2 px-4 rounded">Ka Bax</button>
+        </div>
+        
+        <!-- Wadarta Guud -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 text-center">
+            <div class="bg-gray-800 p-4 rounded-lg"><p class="text-sm text-slate-400">Wadarta Maalgalinta Cumar</p><p id="my-total" class="text-2xl font-bold text-primary">$0.00</p></div>
+            <div class="bg-gray-800 p-4 rounded-lg"><p class="text-sm text-slate-400">Wadarta Maalgalinta Guuleed</p><p id="cofounder-total" class="text-2xl font-bold text-primary">$0.00</p></div>
+            <div class="bg-gray-800 p-4 rounded-lg border-2 border-primary"><p class="text-sm text-slate-400">WADARTA GUUD</p><p id="grand-total" class="text-3xl font-bold text-white">$0.00</p></div>
+        </div>
+        
+        <!-- Foomka Kharashka Cusub / Edit -->
+        <div class="bg-gray-800 p-6 rounded-lg mb-6 shadow-xl border border-gray-700 transition-colors duration-300" id="form-card">
+            
+            <div class="flex justify-between items-center mb-4">
+                <!-- ISBEDEL: Waxaan siinay ID 'form-heading' -->
+                <h3 class="font-bold text-xl text-white border-l-4 border-primary pl-2" id="form-heading">Diiwaangeli Maalgalin Cusub</h3>
+                
+                <!-- ISBEDEL: Badhanka cusub ee Ka Noqo (Cancel) - Wuu qarsoon yahay bilowga -->
+                <button id="cancel-btn" onclick="cancelEdit()" class="hidden text-xs text-gray-400 hover:text-white bg-gray-700 px-3 py-1 rounded font-bold uppercase">Ka Noqo X</button>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <input id="exp-desc" type="text" placeholder="Sharaxaad (e.g. Kirada Xafiiska)" class="md:col-span-2 w-full bg-gray-900 border border-gray-600 text-white rounded p-3 focus:outline-none focus:border-primary">
+                <input id="exp-amount" type="number" placeholder="Qiimaha (ETB)" class="w-full bg-gray-900 border border-gray-600 text-white rounded p-3 focus:outline-none focus:border-primary font-mono font-bold">
+            </div>
+            
+            <!-- ISBEDEL: Waxaan badalnay function-ka 'addExpense' -->
+            <button id="submit-btn" onclick="handleFormSubmit()" class="w-full mt-4 bg-primary text-gray-900 font-bold text-lg p-3 rounded hover:bg-yellow-500 transition-transform active:scale-95 shadow-lg uppercase">
+                Diiwaangeli
+            </button>
+        </div>
+        
+        <!-- Liiska Kharashaadka -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div>
+        <h3 class="font-bold text-xl mb-4">Maalgalinta Mr. Cumar</h3>
+        <!-- Waa kan DIV-ka cusub ee xallinaya dhibaatada -->
+        <div class="max-h-96 overflow-y-auto border border-gray-700/50 rounded-lg p-2">
+            <div id="my-expenses-list" class="space-y-3"></div>
+        </div>
+    </div>
+    <div>
+        <h3 class="font-bold text-xl mb-4">Maalgalinta Mr. Guuleed</h3>
+        <!-- Iyo kan labaad oo la mid ah kii hore -->
+        <div class="max-h-96 overflow-y-auto border border-gray-700/50 rounded-lg p-2">
+            <div id="cofounder-expenses-list" class="space-y-3"></div>
+        </div>
+    </div>
+</div>
+</div>
+
+
+<!-- JAVASCRIPT & FIREBASE -->
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-firestore.js"></script>
+
+<script>
+    // --- QAABEYNTA FIREBASE ---
+    const firebaseConfig = { 
+        apiKey: "AIzaSyAq0ZMHARQzJlQDQVdcBrJLSOwrvI1tCLI",
+        authDomain: "ebalami-website.firebaseapp.com",
+        projectId: "ebalami-website",
+        storageBucket: "ebalami-website.firebasestorage.app",
+        messagingSenderId: "612434597781",
+        appId: "1:612434597781:web:cd46819a426fc8ee60c89c" 
+};
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    // --- XOGTA GUUD ---
+    let currentUser = null;
+    let isAdmin = false;
+    let editModeId = null; 
+    let expensesData = {}; // Cache
+    
+    const pageLogin = document.getElementById('page-login');
+    const pageDashboard = document.getElementById('page-dashboard');
+    const expensesCollection = db.collection('expenses');
+    
+    // IDs-KA LABADA USER
+    const CEO_UID = "5CVXPSVEJzLVUmA2XHkmprDVE5F3";        
+    const COFOUNDER_UID = "h1Th8sPMLLXgGGAK0nOAMBh8Zoi1"; 
+
+
+    // --- MAAREYNTA BOGAGGA & LOGIN-KA ---
+    function loginUser() {
+        auth.signInWithEmailAndPassword(document.getElementById('email').value, document.getElementById('password').value)
+            .catch(error => {
+                document.getElementById('login-error').textContent = "Email ama Password khaldan.";
+                document.getElementById('login-error').classList.remove('hidden');
+            });
+    }
+
+    function logoutUser() { auth.signOut(); }
+    
+    auth.onAuthStateChanged(async user => {
+        if (user) {
+            const token = await user.getIdTokenResult(true);
+            currentUser = user;
+            isAdmin = token.claims.role === 'admin';
+            
+            pageLogin.classList.add('page-hidden');
+            pageDashboard.classList.remove('page-hidden');
+            listenForExpenses(); // Bilaab dhagaysiga
+        } else {
+            currentUser = null;
+            isAdmin = false;
+            pageLogin.classList.remove('page-hidden');
+            pageDashboard.classList.add('page-hidden');
+        }
+    });
+
+    // --- SHAQOOYINKA CUSUB EE EDIT IYO SAVE ---
+
+    // 1. DIIWAANGELI AMA KEYDI ISBEDELKA (Wuxuu bedelay addExpense)
+    window.handleFormSubmit = function() {
+        // Waxaan qiimaha ka qaadanaynaa ID-yada aan HTML-ka ku qornay (exp-desc, exp-amount)
+        const desc = document.getElementById('exp-desc').value;
+        const amt = parseFloat(document.getElementById('exp-amount').value);
+
+        if(!desc || !amt) return alert("Fadlan buuxi xogta.");
+
+        if (editModeId) {
+            // ---> EDIT MODE: Haddi aan wax sixeyno (Update)
+            db.collection('expenses').doc(editModeId).update({
+                description: desc,
+                amount: amt
+            }).then(() => {
+                cancelEdit(); // Markuu dhameeyo, foomka dib u celi
+            });
+        } else {
+            // ---> NEW MODE: Haddi aan cusub gelineyno (Create)
+            db.collection('expenses').add({
+                description: desc,
+                amount: amt,
+                ownerId: currentUser.uid,
+                date: new Date()
+            }).then(() => {
+                cancelEdit(); // Formka nadiifi (cancelEdit wuxuu qabtaa nadiifinta sidoo kale)
+            });
+        }
+    }
+
+    // 2. MARKII QALINKA LA TAABTO (Start Edit)
+    window.startEdit = function(id) {
+        // Xogta ka soo saar kaydka (Cache) aan sameynay
+        const item = expensesData[id]; 
+        if(!item) return;
+
+        // Xogta ku shub Input-yada si loo saxo
+        document.getElementById('exp-desc').value = item.description;
+        document.getElementById('exp-amount').value = item.amount;
+        
+        // Bedel State-ka iyo Muuqaalka Foomka
+        editModeId = id; // Hada waxaan ku jirnaa mode-ka Edit
+        
+        // Bedel Qoraalada Shaashada
+        document.getElementById('form-heading').textContent = "Wax-ka-bedel (Editing Mode)";
+        document.getElementById('form-card').classList.add('border-blue-500'); // Ka dhig Border Buluug ah
+        document.getElementById('form-card').classList.remove('border-primary'); // Ka qaad Huruuda
+        document.getElementById('cancel-btn').classList.remove('hidden'); // Soo saar badhanka Ka-Noqo
+
+        // Badel badhanka weyn
+        const btn = document.getElementById('submit-btn');
+        btn.textContent = "KEYDI ISBEDELKA";
+        btn.classList.replace('bg-primary', 'bg-blue-600');
+        btn.classList.replace('text-gray-900', 'text-white');
+    }
+
+    // 3. KA NOQO AMA NADIIFI (Cancel Edit)
+    window.cancelEdit = function() {
+        editModeId = null; // Ka bax mode-ka Edit
+        document.getElementById('exp-desc').value = '';
+        document.getElementById('exp-amount').value = '';
+        
+        // Dib u celi Muuqaalka caadiga ah
+        document.getElementById('form-heading').textContent = "Diiwaangeli Maalgalin Cusub";
+        document.getElementById('form-card').classList.remove('border-blue-500');
+        document.getElementById('form-card').classList.add('border-primary');
+        document.getElementById('cancel-btn').classList.add('hidden');
+        
+        const btn = document.getElementById('submit-btn');
+        btn.textContent = "Diiwaangeli";
+        btn.classList.replace('bg-blue-600', 'bg-primary');
+        btn.classList.replace('text-white', 'text-gray-900');
+    }
+
+    // 4. TIRTIR (Delete) - Waa la casriyeeyay
+    window.deleteExpense = function(id) {
+        if(confirm("Ma hubtaa inaad tirtirto kharashkan?")) {
+            // Haddii sheyga la tirtirayo uu yahay kan hadda foomka ku jira, foomka nadiifi
+            if (editModeId === id) cancelEdit(); 
+            db.collection('expenses').doc(id).delete();
+        }
+    }
+
+    // --- DHAGAYSIGA & SOO BANDHIGIDDA XOGTA ---
+    function listenForExpenses() {
+        expensesCollection.orderBy('date', 'desc').onSnapshot(snapshot => {
+            let myExpenses = [];
+            let cofounderExpenses = [];
+
+            snapshot.forEach(doc => {
+                const expense = { id: doc.id, ...doc.data() };
+                expensesData[doc.id] = expense;
+                if (expense.ownerId === CEO_UID) {
+                    myExpenses.push(expense);
+                } else if (expense.ownerId === COFOUNDER_UID) {
+                    cofounderExpenses.push(expense);
+                }
+            });
+            
+            renderExpenses('my', myExpenses);
+            renderExpenses('cofounder', cofounderExpenses);
+            calculateTotals(myExpenses, cofounderExpenses);
+        });
+    }
+
+  function renderExpenses(type, expenses) {
+    const listId = type === 'my' ? 'my-expenses-list' : 'cofounder-expenses-list';
+    const listElement = document.getElementById(listId);
+    listElement.innerHTML = expenses.map(exp => {
+        const date = new Date(exp.date.seconds * 1000).toLocaleDateString('so-SO');
+        
+        const canEditOrDelete = isAdmin || exp.ownerId === currentUser.uid;
+        
+        return `
+            <div class="bg-gray-700/50 p-3 rounded-md flex justify-between items-center">
+                <div>
+                    <p class="font-bold">${exp.description}</p>
+                    <p class="text-xs text-slate-400">${date}</p>
+                </div>
+
+                <div class="text-right">
+                    <p class="font-bold text-lg text-primary/90 font-mono">${exp.amount.toFixed(2)} ETB</p>
+                    
+                    ${canEditOrDelete ? `
+                        <div class="flex items-center justify-end gap-2 mt-1">
+                            <button onclick="startEdit('${exp.id}')" class="text-blue-400 hover:text-white bg-blue-500/10 p-1.5 rounded transition-colors" title="Wax ka bedel">
+                                <span class="material-symbols-outlined text-[16px]">edit</span>
+                            </button>
+                            
+                            <button onclick="deleteExpense('${exp.id}')" class="text-red-400 hover:text-white bg-red-500/10 p-1.5 rounded transition-colors" title="Tirtir">
+                                <span class="material-symbols-outlined text-[16px]">delete</span>
+                            </button>
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+    function calculateTotals(my, cofounder) {
+    const myTotal = my.reduce((sum, exp) => sum + exp.amount, 0);
+    const cofounderTotal = cofounder.reduce((sum, exp) => sum + exp.amount, 0);
+    const grandTotal = myTotal + cofounderTotal;
+
+    document.getElementById('my-total').textContent = `${myTotal.toFixed(2)} ETB`;
+    document.getElementById('cofounder-total').textContent = `${cofounderTotal.toFixed(2)} ETB`;
+    document.getElementById('grand-total').textContent = `${grandTotal.toFixed(2)} ETB`;
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  /* Waxaanu u bixinay magaca 'sans' si uu u noqdo midka default-ka ah */
+  --font-sans: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  
+  --color-brand-yellow: #FFC107;
+  --color-brand-dark: #121212;
+  
+  --animate-text-shimmer: text-shimmer 3s linear infinite;
+
+  @keyframes text-shimmer {
+    0% { background-position: 0% 50%; }
+    100% { background-position: 200% 50%; }
+  }
+}
+
+/* Fonts are loaded via <link> in src/routes/+layout.svelte */
+
+/* Force Font Global */
+:root, html, body {
+  font-family: 'Manrope', sans-serif !important; /* Important wuxuu jabinayaa wax kasta oo diida */
+  background-color: #121212;
+  color: #F3F4F6;
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+}
+
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: #121212; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #FFC107; }

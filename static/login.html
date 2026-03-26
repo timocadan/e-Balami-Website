@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="so" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - e-Balami Dashboard</title>
+    
+    <!-- ================== FAVICON LINKS (WAXAA LAGU DARAY / ) ================== -->
+    <link rel="apple-touch-icon" sizes="180x180" href="/Assets/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/Assets/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/Assets/favicon-16x16.png">
+    <link rel="manifest" href="/Assets/site.webmanifest">
+    <!-- ======================================================================= -->
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: 'class', theme: { extend: { colors: { primary: '#FFC107' } } } }</script>
+</head>
+<body class="bg-gray-900 flex items-center justify-center h-screen">
+    <div class="w-full max-w-md bg-gray-800 p-8 rounded-lg shadow-lg border border-gray-700">
+        <!-- Logo (Haddii aad rabto) -->
+        <!-- <img src="/logo.png" class="h-12 mx-auto mb-4"> -->
+        
+        <h2 class="text-3xl font-bold text-white text-center mb-6">e-Balami Dashboard</h2>
+        
+        <form onsubmit="event.preventDefault(); loginUser();">
+            <input id="email" type="email" placeholder="Email" required class="w-full bg-gray-700 text-white rounded p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-primary border border-gray-600">
+            <input id="password" type="password" placeholder="Password" required class="w-full bg-gray-700 text-white rounded p-3 mb-4 focus:outline-none focus:ring-2 focus:ring-primary border border-gray-600">
+            <button type="submit" class="w-full bg-primary text-gray-900 font-bold p-3 rounded hover:bg-yellow-400 transition transform active:scale-95">Soo Gal</button>
+        </form>
+        
+        <p id="login-error" class="text-red-400 text-center mt-4 hidden text-sm font-bold"></p>
+    </div>
+
+    <!-- === FIREBASE SDK === -->
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyAq0ZMHARQzJlQDQVdcBrJLSOwrvI1tCLI",
+            authDomain: "ebalami-website.firebaseapp.com",
+            projectId: "ebalami-website",
+            storageBucket: "ebalami-website.firebasestorage.app",
+            messagingSenderId: "612434597781",
+            appId: "1:612434597781:web:cd46819a426fc8ee60c89c"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+
+        // Liiska Admin-ka
+        const ADMIN_EMAILS = ["omermohamed1872@gmail.com", "ebalamiservices@gmail.com"];
+
+        function loginUser() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorP = document.getElementById('login-error');
+            
+            errorP.classList.add('hidden'); // Qari error-ka hore
+
+            auth.signInWithEmailAndPassword(email, password)
+               .then((userCredential) => {
+    window.location.href = '/dashboard'; 
+})
+                .catch(error => {
+                    console.error(error);
+                    errorP.textContent = "Email ama Password khaldan.";
+                    errorP.classList.remove('hidden');
+                });
+        }
+
+        // === AUTO LOGIN: Haddii uu horey u joogay, toos u gudbi ===
+        auth.onAuthStateChanged(user => {
+            if (user && ADMIN_EMAILS.includes(user.email)) {
+                window.location.href = '/dashboard';
+            }
+        });
+    </script>
+</body>
+</html>
