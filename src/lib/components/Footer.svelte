@@ -119,11 +119,14 @@
      </div>
 
     <!-- COPYRIGHT -->
-    <div class="pt-8 border-t border-gray-900 flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-600">
-        <p>&copy; 2025 e-Balami Technologies. All rights reserved.</p>
-        <div class="flex gap-6">
-            <a href="/privacy" class="hover:text-gray-400">Privacy Policy</a>
-            <a href="/terms" class="hover:text-gray-400">Terms of Service</a>
+    <div class="pt-8 border-t border-gray-900 flex flex-col items-center gap-4 text-sm text-gray-300">
+        <p class="text-center max-w-4xl leading-relaxed">
+            &copy; 2025 e-Balami. All rights reserved. | Powered by Abqo Technology. | Developed by
+            <a href="https://web.facebook.com/timocadaan" target="_blank" rel="noopener noreferrer" class="font-medium text-[#FFC107] hover:text-[#ffdb4d] underline underline-offset-2">Cumar Timocade</a>
+        </p>
+        <div class="flex flex-wrap justify-center gap-6 text-gray-400">
+            <a href="/privacy" class="hover:text-[#FFC107] transition-colors">Privacy Policy</a>
+            <a href="/terms" class="hover:text-[#FFC107] transition-colors">Terms of Service</a>
         </div>
     </div>
 </footer>
