@@ -15,27 +15,55 @@
 </head>
 <body class="bg-gray-900 text-white p-4 sm:p-8">
 
-<!-- ================== NAVIGATOR-KA DASHBOARD-KA OO DHAMMAYSTIRAN ================== -->
-<div class="bg-gray-800 p-2 mb-6">
-    <div class="container mx-auto flex items-center justify-center gap-4">
-        <!-- Badhanka Caafimaadka -->
-        <a href="/dashboard/caafimaad" id="nav-caafimaad" 
-           class="py-2 px-6 rounded-lg font-bold text-sm transition-all duration-300">
-           Waaxda Caafimaadka
-        </a>
-
-        <!-- Badhanka Farsamada -->
-        <a href="/dashboard/farsamo" id="nav-farsamo" 
-           class="py-2 px-6 rounded-lg font-bold text-sm transition-all duration-300">
-           Waaxda Farsamada
-        </a>
+<div class="bg-gray-800 p-3 mb-8 rounded-lg border border-gray-700">
+    <div class="container mx-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <div class="flex items-center justify-center sm:justify-start gap-3">
+            <button id="nav-orders" onclick="switchMainTab('orders')" class="py-2 px-6 rounded-lg font-bold text-sm transition-all duration-300">
+                Dalabyada (Orders)
+            </button>
+            <button id="nav-users" onclick="switchMainTab('users')" class="py-2 px-6 rounded-lg font-bold text-sm transition-all duration-300">
+                Macaamiisha (Users)
+            </button>
+        </div>
+        <button onclick="logoutUser()" class="bg-red-600 text-white font-bold py-2 px-4 rounded hover:bg-red-500 flex items-center gap-2 self-center sm:self-auto">
+            <span class="material-symbols-outlined">logout</span> Ka Bax
+        </button>
     </div>
 </div>
 
 <div class="max-w-7xl mx-auto">
+    <div id="users-section" class="mb-10 bg-gray-800/70 border border-gray-700 rounded-xl p-5 sm:p-6 hidden">
+        <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+            <h1 class="text-3xl font-bold text-primary">Macaamiisha Diwaangashan</h1>
+        </div>
+        <div class="mb-4 sm:flex sm:justify-end">
+            <div class="relative w-full sm:max-w-xs">
+                <input id="users-search-input" onkeyup="filterUsersTable()" type="text" placeholder="Raadi user..." class="w-full bg-gray-700 text-white rounded p-2 pl-10 focus:outline-none focus:ring-2 focus:ring-primary">
+                <span class="material-symbols-outlined absolute left-3 top-2.5 text-gray-400">search</span>
+            </div>
+        </div>
+        <p id="users-count" class="text-sm text-slate-400 my-2"></p>
+        <div class="bg-gray-800 rounded-lg shadow-lg overflow-x-auto max-h-[60vh] overflow-y-auto">
+            <table class="w-full min-w-[1200px]">
+                <thead class="bg-gray-700">
+                    <tr>
+                        <th class="w-16 p-3 text-center text-xs font-bold uppercase">#</th>
+                        <th class="w-20 p-3 text-center text-xs font-bold uppercase">Profile</th>
+                        <th class="w-[28%] p-3 text-left text-xs font-bold uppercase">Name</th>
+                        <th class="w-[32%] p-3 text-left text-xs font-bold uppercase">Email</th>
+                        <th class="w-[20%] p-3 text-left text-xs font-bold uppercase">Join Date</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table">
+                    <tr><td colspan="5" class="p-4 text-center text-gray-500">Loading users...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="orders-section" class="bg-gray-800/70 border border-gray-700 rounded-xl p-5 sm:p-6">
     <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
-        <h1 class="text-3xl font-bold">Dalabyada Cusub (Caafimaad)</h1>
-        <button onclick="logoutUser()" class="bg-red-600 text-white font-bold py-2 px-4 rounded hover:bg-red-500 flex items-center gap-2"><span class="material-symbols-outlined">logout</span> Ka Bax</button>
+        <h1 class="text-3xl font-bold text-primary">Dalabyada Cusub (Caafimaad)</h1>
     </div>
 
     <div class="mb-4 space-y-4 sm:space-y-0 sm:flex sm:justify-between sm:items-center">
@@ -73,6 +101,7 @@
     <div class="mt-4 text-right">
         <button id="deleteAllBtn" onclick="deleteAllOrders()" class="bg-red-800/50 text-red-300 text-xs font-bold py-2 px-3 rounded hover:bg-red-800/80">Tirtir Dhammaan</button>
     </div>
+    </div>
 </div>
 
 <!-- ================== MASKAXDA UGU DAMBEYSA OO DHAMMAYSTIRAN OO LA SAXAY ================== -->
@@ -97,6 +126,7 @@
     const db = firebase.firestore();
 
     let currentCollection = 'dalabyadaDhamaystiran';
+    let allUsersData = [];
     let allOrdersData = []; 
 
     function logoutUser() { auth.signOut().then(() => { window.location.href = 'login.html'; }); }
@@ -107,6 +137,11 @@
     } else {
         // Hubi haddii user-kan uu liiska Admin-ka ku jiro
         isDashboardAdmin = ADMIN_EMAILS.includes(user.email);
+        if (!isDashboardAdmin) {
+            alert("Kuma fasaxna dashboard-kan. Admin kaliya ayaa geli kara.");
+            logoutUser();
+            return;
+        }
 
         // Halkan waxaan ku qarinaynaa badhanka weyn ee "Tirtir Dhammaan"
         const deleteAllButton = document.getElementById('deleteAllBtn');
@@ -115,9 +150,139 @@
             deleteAllButton.style.display = isDashboardAdmin ? 'flex' : 'none';
         }
         
+        loadUsers();
         loadOrders(currentCollection);
     }
 });
+    function getUserCreatedDate(data) {
+        const raw = data.createdAt || data.created_at || data.timestamp || data.createdDate || data.dateCreated || null;
+        if (!raw) return null;
+        if (typeof raw.toDate === 'function') return raw.toDate();
+        if (raw instanceof Date) return raw;
+        if (typeof raw === 'string' || typeof raw === 'number') {
+            const parsed = new Date(raw);
+            if (!Number.isNaN(parsed.getTime())) return parsed;
+        }
+        return null;
+    }
+
+    function getUserFullName(data) {
+        if (typeof data.displayName === 'string' && data.displayName.trim()) return data.displayName.trim();
+        if (data.fullName) return data.fullName;
+        if (data.name) return data.name;
+        const first = data.firstName || '';
+        const last = data.lastName || '';
+        const joined = `${first} ${last}`.trim();
+        return joined || '-';
+    }
+
+    function renderUsersTable(docs) {
+        const usersBody = document.getElementById('users-table');
+        if (!usersBody) return;
+
+        document.getElementById('users-count').textContent = `Tirada Guud ee Users: ${docs.length}`;
+        if (!docs.length) {
+            usersBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">No users</td></tr>`;
+            return;
+        }
+
+        usersBody.innerHTML = docs.map((doc, index) => {
+            const data = doc.data();
+            const createdAt = getUserCreatedDate(data);
+            const createdDate = createdAt ? createdAt.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '-';
+            const fullName = getUserFullName(data);
+            const profileImage = (typeof data.photoURL === 'string' && data.photoURL.trim()) ? data.photoURL.trim() : '';
+            const email = (typeof data.email === 'string' && data.email.trim()) ? data.email.trim() : '';
+            const initial = (fullName.charAt(0) || 'U').toUpperCase();
+            const profileCell = profileImage
+                ? `<img src="${profileImage}" alt="Profile" class="w-10 h-10 rounded-full object-cover border border-gray-600 mx-auto" referrerpolicy="no-referrer">`
+                : `<div class="w-10 h-10 rounded-full border border-yellow-500/40 bg-yellow-500/20 text-yellow-300 font-bold mx-auto flex items-center justify-center">${initial}</div>`;
+            const emailCell = email
+                ? `<a href="mailto:${email}" class="text-blue-400 hover:text-yellow-400 hover:underline pointer-events-auto">${email}</a>`
+                : '-';
+
+            return `<tr class="border-b border-gray-700 hover:bg-gray-700/50 transition-all duration-300">
+                <td class="p-3 text-sm text-center text-slate-400">${index + 1}</td>
+                <td class="p-3 text-sm text-center">${profileCell}</td>
+                <td class="p-3 text-sm font-medium">${fullName}</td>
+                <td class="p-3 text-sm">${emailCell}</td>
+                <td class="p-3 text-sm text-gray-400 whitespace-nowrap">${createdDate}</td>
+            </tr>`;
+        }).join('');
+    }
+
+    function loadUsers() {
+        const usersBody = document.getElementById('users-table');
+        if (usersBody) {
+            usersBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-gray-500">Loading users...</td></tr>`;
+        }
+        db.collection('users').onSnapshot(snapshot => {
+            console.log(`[Users Query] collection=users, docs=${snapshot.size}`);
+            snapshot.forEach(doc => {
+                console.log('[Users Query][users] doc', doc.id, doc.data());
+            });
+            allUsersData = snapshot.docs.filter(doc => doc.exists).slice().sort((a, b) => {
+                const firstDate = getUserCreatedDate(a.data());
+                const secondDate = getUserCreatedDate(b.data());
+                const firstTime = firstDate ? firstDate.getTime() : 0;
+                const secondTime = secondDate ? secondDate.getTime() : 0;
+                return secondTime - firstTime;
+            });
+            filterUsersTable();
+        }, error => {
+            console.error("Users Fetch Error (users):", error);
+            if (usersBody) {
+                usersBody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-400">Failed to load users.</td></tr>`;
+            }
+            document.getElementById('users-count').textContent = "Tirada Guud ee Users: 0";
+        });
+    }
+
+    function filterUsersTable() {
+        const query = (document.getElementById('users-search-input')?.value || '').toLowerCase().trim();
+        if (!query) {
+            renderUsersTable(allUsersData);
+            return;
+        }
+
+        const filteredUsers = allUsersData.filter(doc => {
+            const data = doc.data();
+            const searchable = [
+                getUserFullName(data),
+                data.email || ''
+            ].join(' ').toLowerCase();
+            return searchable.includes(query);
+        });
+
+        renderUsersTable(filteredUsers);
+    }
+
+    function switchMainTab(tabName) {
+        const usersSection = document.getElementById('users-section');
+        const ordersSection = document.getElementById('orders-section');
+        const usersBtn = document.getElementById('nav-users');
+        const ordersBtn = document.getElementById('nav-orders');
+        const activeStyle = "bg-primary text-gray-900 shadow-md";
+        const inactiveStyle = "text-gray-400 hover:text-white hover:bg-gray-700/50";
+
+        if (tabName === 'users') {
+            usersSection.classList.remove('hidden');
+            ordersSection.classList.add('hidden');
+            usersBtn.classList.add(...activeStyle.split(" "));
+            usersBtn.classList.remove(...inactiveStyle.split(" "));
+            ordersBtn.classList.add(...inactiveStyle.split(" "));
+            ordersBtn.classList.remove(...activeStyle.split(" "));
+            return;
+        }
+
+        ordersSection.classList.remove('hidden');
+        usersSection.classList.add('hidden');
+        ordersBtn.classList.add(...activeStyle.split(" "));
+        ordersBtn.classList.remove(...inactiveStyle.split(" "));
+        usersBtn.classList.add(...inactiveStyle.split(" "));
+        usersBtn.classList.remove(...activeStyle.split(" "));
+    }
+
     function loadOrders(collectionName) {
         currentCollection = collectionName;
         
@@ -244,27 +409,8 @@ function renderTable(docs) {
     }
 
     document.addEventListener("DOMContentLoaded", () => {
-    const caafimaadBtn = document.getElementById('nav-caafimaad');
-    const farsamoBtn = document.getElementById('nav-farsamo');
-
-    // Style-ka Badhanka Firfircoon (Huruud Buuxa)
-    const activeStyle = "bg-primary text-gray-900 shadow-md transform scale-105";
-    
-    // Style-ka Badhanka Dansan (Qoraal kaliya)
-    const inactiveStyle = "text-gray-400 hover:text-white hover:bg-gray-700/50";
-
-    // Hubi URL-ka
-    if (window.location.pathname.includes('/farsamo')) {
-        // Hadaad Farsamo joogto:
-        farsamoBtn.classList.add(...activeStyle.split(" "));
-        caafimaadBtn.classList.add(...inactiveStyle.split(" "));
-    } else {
-        // Hadaad Caafimaad joogto (Default):
-        caafimaadBtn.classList.add(...activeStyle.split(" "));
-        farsamoBtn.classList.add(...inactiveStyle.split(" "));
-    }
-
-    // Function-kan wuxuu la shaqaynayaa labada Dashboard-ba
+        switchMainTab('orders');
+        // Function-kan wuxuu la shaqaynayaa labada Dashboard-ba
 window.toggleStatus = function(collection, docId, currentStatus) {
     db.collection(collection).doc(docId).update({
         responded: !currentStatus
@@ -281,7 +427,7 @@ function getWhatsAppLink(phoneNumber) {
     const cleanNumber = phoneNumber.replace(/[^0-9]/g, '');
     return `https://wa.me/${cleanNumber}`;
 }
-});
+    });
 </script>
 
 </body>

@@ -1,5 +1,5 @@
 import { 
-    Plane, Wrench, Calendar, Car, 
+    Plane, Calendar, Car, 
     Download, MousePointerClick, ShieldCheck, Smartphone, 
     Shield, Lightbulb, Users 
 } from 'lucide-svelte';
@@ -42,15 +42,13 @@ export const content = {
         items: {
             en: [
                 { id: '1', title: 'Medical Travel', description: 'Flights, hospitals, and post-op care in India & Ethiopia.', icon: Plane },
-                { id: '2', title: 'Vetted Technicians', description: 'Electricians, plumbers, and mechanics you can trust.', icon: Wrench },
-                { id: '3', title: 'Event Management', description: 'Corporate & personal event planning made simple.', icon: Calendar },
-                { id: '4', title: 'Car Rentals', description: 'Reliable vehicles for any occasion, anytime.', icon: Car }
+                { id: '2', title: 'Event Management', description: 'Corporate & personal event planning made simple.', icon: Calendar },
+                { id: '3', title: 'Car Rentals', description: 'Reliable vehicles for any occasion, anytime.', icon: Car }
             ],
             so: [
                 { id: '1', title: 'Safarrada Caafimaadka', description: 'Tikidhada, isbitaallada, iyo daryeelka Hindiya & Itoobiya.', icon: Plane },
-                { id: '2', title: 'Farsamoyaqaanno', description: 'Koronto-yaqaanno iyo Tubbooleyaal la hubiyay oo la aamini karo.', icon: Wrench },
-                { id: '3', title: 'Qabanqaabada Xafladaha', description: 'Qorsheynta shirarka shirkadaha iyo munaasabadaha gaarka ah.', icon: Calendar },
-                { id: '4', title: 'Kirada Gaadiidka', description: 'Gaadiid la isku hallayn karo oo diyaar ku ah waqti kasta.', icon: Car }
+                { id: '2', title: 'Qabanqaabada Xafladaha', description: 'Qorsheynta shirarka shirkadaha iyo munaasabadaha gaarka ah.', icon: Calendar },
+                { id: '3', title: 'Kirada Gaadiidka', description: 'Gaadiid la isku hallayn karo oo diyaar ku ah waqti kasta.', icon: Car }
             ]
         },
         steps: {
@@ -82,7 +80,6 @@ export const content = {
             ],
             so: [
                 { end: 1000, suffix: '+', label: 'Macaamiil Maalinle ah' },
-                { end: 100, suffix: '+', label: 'Farsamo-yaqaanno' },
                 { end: 10, suffix: '+', label: 'Magaalooyin Waaweyn' },
                 { end: 5, suffix: '+', label: 'Wadamo' }
             ]
@@ -194,13 +191,11 @@ export const content = {
         items: {
             en: [
                 { question: "How does Medical Travel work?", answer: "It's simple. You choose the country and hospital via App. We handle booking, visa letters, and logistics." },
-                { question: "Are technicians trustworthy?", answer: "Yes, 100%. Every technician undergoes a background check and is registered." },
                 { question: "Payment methods?", answer: "We accept Telebirr, CBE Birr, and Bank Transfers for secure payments." },
                 { question: "What about refunds?", answer: "We have a strict Refund Policy and 24/7 support to resolve issues." }
             ],
             so: [
                 { question: "Sidee u shaqeeyaan Safarrada Caafimaadku?", answer: "App-ka ayaad ka dalbanaysaa. Anagaa kuu ballaminayna dhakhtarka, Viisada, iyo huteelka." },
-                { question: "Farsamo-yaqaanada ma la aamini karaa?", answer: "Haa, 100%. Farsamo-yaqaan kasta waa la hubiyay (Background Check) waana diiwaangashan yahay." },
                 { question: "Lacag bixintu sidee waaye?", answer: "Waxaad isticmaali kartaa Telebirr, CBE Birr, iyo Bank Transfer." },
                 { question: "Haddii aanan ku qancin adeegga?", answer: "Waxaan leenahay nidaam Lacag-celin (Refund Policy) iyo xarun cabasho oo 24/7 shaqaysa." }
             ]
@@ -209,8 +204,8 @@ export const content = {
     
     footer: {
         tagline: { 
-            en: "The premium all-in-one platform for your lifestyle, medical, and technical needs.", 
-            so: "Madal casri ah oo kulmisay xalka baahiyahaaga nololeed, Hadey tahay mid caafimaad iyo mid farsamoba." 
+            en: "The premium all-in-one platform for your lifestyle and medical needs.", 
+            so: "Madal casri ah oo kulmisay xalka baahiyahaaga nololeed iyo caafimaad." 
         },
         headings: {
             nav: { en: "Navigation", so: "Boggaga" },

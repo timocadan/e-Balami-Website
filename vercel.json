@@ -17,10 +17,14 @@
   ],
   "rewrites": [
     { "source": "/dashboard", "destination": "/caafimaad-dashboard.html" },
-    { "source": "/dashboard/caafimaad", "destination": "/caafimaad-dashboard.html" },
-    { "source": "/dashboard/farsamo", "destination": "/farsamo-dashboard.html" }
+    { "source": "/dashboard/caafimaad", "destination": "/caafimaad-dashboard.html" }
   ],
   "redirects": [
+    {
+      "source": "/dashboard/farsamo",
+      "destination": "/dashboard/caafimaad",
+      "permanent": true
+    },
     {
       "source": "/studio",
       "destination": "https://ebalami-admin.sanity.studio",
